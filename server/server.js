@@ -93,7 +93,7 @@ async function startServer() {
       res.json({ user: row });
     });
 
-    app.post('/api/auth/change-password', authRequired, (req, res) => {
+    app.put('/api/auth/change-password', authRequired, (req, res) => {
       const { oldPassword, newPassword, username } = req.body || {};
       if (!oldPassword || !newPassword) return res.status(400).json({ error: 'Missing fields' });
       const row = db.prepare('SELECT * FROM admin WHERE id = ?').get(req.user.sub);
