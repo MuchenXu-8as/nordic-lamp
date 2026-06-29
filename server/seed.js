@@ -6,19 +6,19 @@ function uid(){
 
 const DEFAULT_SETTINGS = {
   brand: 'Nordic Lamp',
-  brandTag: 'Nordic Lighting · Considered Design',
+  brandTag: 'Nordic Lighting 路 Considered Design',
   logo: '',
   heroTitle: 'Timeless Light, Considered Design.',
-  heroSub: 'A refined collection of handcrafted lamps designed for calm, modern interiors — where form follows feeling.',
-  aboutIntro: 'We believe lighting is the quietest, most generous form of design. Every piece in our collection is considered — shaped by natural materials, soft light, and the rituals of everyday life.',
-  aboutBody: 'Founded in 2008 in Stockholm, Nordic Lamp began as a small studio of ceramicists and woodworkers. Today we partner with independent designers across Scandinavia, producing a quiet catalogue of lamps intended to age gracefully.\n\nOur approach is slow, our palette is restrained, and our materials are honest — linen, oak, marble, raw ceramic and hand-blown glass.',
+  heroSub: 'A refined collection of handcrafted lamps designed for calm, modern interiors 鈥?where form follows feeling.',
+  aboutIntro: 'We believe lighting is the quietest, most generous form of design. Every piece in our collection is considered 鈥?shaped by natural materials, soft light, and the rituals of everyday life.',
+  aboutBody: 'Founded in 2008 in Stockholm, Nordic Lamp began as a small studio of ceramicists and woodworkers. Today we partner with independent designers across Scandinavia, producing a quiet catalogue of lamps intended to age gracefully.\n\nOur approach is slow, our palette is restrained, and our materials are honest 鈥?linen, oak, marble, raw ceramic and hand-blown glass.',
   aboutImage: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=900&q=80',
-  contactAddress: 'No. 12 Strandvägen, Stockholm, Sweden',
+  contactAddress: 'No. 12 Strandv盲gen, Stockholm, Sweden',
   contactEmail: 'hello@nordiclamp.com',
   contactPhone: '+46 8 123 45 67',
   wholesaleEmail: 'wholesale@nordiclamp.com',
   supportEmail: 'support@nordiclamp.com',
-  showroom: 'No. 12 Strandvägen, Stockholm, Sweden',
+  showroom: 'No. 12 Strandv盲gen, Stockholm, Sweden',
   footerText: '\u00a9 2026 Nordic Lamp AB. All rights reserved.',
   socialIg: '#',
   socialFb: '#',
@@ -48,10 +48,10 @@ const DEFAULT_PRODUCTS_SEEDS = [
   { name: 'Mora Pendant', slug: 'mora-pendant', cat: 'cat-pendant', price: 'EUR 249', desc: 'Mouth-blown opal glass pendant on a solid brass base. Silk cord is height-adjustable.', specs: { Material: 'Hand-blown glass, brass', Finish: 'Opal white / brushed brass', Wattage: 'Max 60W E27', Warranty: '2 years' } },
   { name: 'Linen Shade Table Lamp', slug: 'linen-shade-table-lamp', cat: 'cat-table-lamp', price: 'EUR 189', desc: 'Solid oak base with a woven linen shade. Dimmable.', specs: { Material: 'Solid oak, linen', Finish: 'Natural oak / natural linen', Wattage: 'Max 60W E27', Warranty: '2 years' } },
   { name: 'Vasa Floor Lamp', slug: 'vasa-floor-lamp', cat: 'cat-floor-lamp', price: 'EUR 459', desc: 'Minimalist floor lamp in matte black with a cotton drum shade.', specs: { Material: 'Powder-coated steel, cotton', Height: '170 cm', Wattage: 'Max 60W E27', Warranty: '2 years' } },
-  { name: 'Söder Sconce', slug: 'soder-sconce', cat: 'cat-wall-sconce', price: 'EUR 159', desc: 'Ceramic wall sconce with a ribbed glaze. Hard-wired or plug-in options.', specs: { Material: 'Ceramic, brass', Projection: '12 cm', Wattage: 'Max 40W E14', Warranty: '2 years' } },
+  { name: 'S枚der Sconce', slug: 'soder-sconce', cat: 'cat-wall-sconce', price: 'EUR 159', desc: 'Ceramic wall sconce with a ribbed glaze. Hard-wired or plug-in options.', specs: { Material: 'Ceramic, brass', Projection: '12 cm', Wattage: 'Max 40W E14', Warranty: '2 years' } },
   { name: 'Granite Table Lamp', slug: 'granite-table-lamp', cat: 'cat-table-lamp', price: 'EUR 219', desc: 'Turned from a single block of Swedish granite. Each piece is unique.', specs: { Material: 'Solid granite, linen', Height: '38 cm', Wattage: 'Max 40W E14' } },
   { name: 'Birch Pendant', slug: 'birch-pendant', cat: 'cat-pendant', price: 'EUR 329', desc: 'A birch veneer pendant with warm cork interior and braided cotton cord.', specs: { Material: 'Birch veneer, cotton', Diameter: '30 cm', Wattage: 'Max 60W E27' } },
-  { name: 'Malmö Floor Lamp', slug: 'malmö-floor-lamp', cat: 'cat-floor-lamp', price: 'EUR 519', desc: 'Tripod floor lamp in solid ash with a paper shade.', specs: { Material: 'Solid ash, washi paper', Height: '165 cm', Wattage: 'Max 60W E27' } },
+  { name: 'Malm枚 Floor Lamp', slug: 'malm枚-floor-lamp', cat: 'cat-floor-lamp', price: 'EUR 519', desc: 'Tripod floor lamp in solid ash with a paper shade.', specs: { Material: 'Solid ash, washi paper', Height: '165 cm', Wattage: 'Max 60W E27' } },
   { name: 'Kivik Sconce', slug: 'kivik-sconce', cat: 'cat-wall-sconce', price: 'EUR 129', desc: 'A hand-patinated brass sconce with a frosted glass diffuser.', specs: { Material: 'Solid brass, frosted glass', Projection: '15 cm', Wattage: 'Max 25W G9' } },
   { name: 'Tiveden Pendant', slug: 'tiveden-pendant', cat: 'cat-pendant', price: 'EUR 389', desc: 'Murano glass pendant with a copper armature. Height-adjustable.', specs: { Material: 'Murano glass, copper', Diameter: '28 cm', Wattage: 'Max 60W E27', Warranty: '2 years' } },
   { name: 'Ljus Table Lamp', slug: 'ljus-table-lamp', cat: 'cat-table-lamp', price: 'EUR 169', desc: 'A compact porcelain table lamp with a cotton shade.', specs: { Material: 'Porcelain, cotton', Height: '32 cm', Wattage: 'Max 40W E14', Warranty: '2 years' } },
@@ -61,11 +61,12 @@ const DEFAULT_PRODUCTS_SEEDS = [
 
 async function seed(){
   const info = await db.prepare("SELECT key FROM settings WHERE key = ?").get('seed_version');
-  const currentVersion = 3;
+  const currentVersion = 4;
+
+  await seedAdmin();
 
   if (!info){
     console.log('[seed] First run, seeding initial data...');
-    await seedAdmin();
     await seedCategories();
     await seedProducts();
     await seedSiteSettings();
@@ -88,13 +89,17 @@ async function seed(){
 }
 
 async function seedAdmin(){
-  const row = await db.prepare("SELECT id FROM admin LIMIT 1").get();
-  if (row) return;
   const bcrypt = require('bcryptjs');
   const hash = bcrypt.hashSync('admin123', 10);
   const now = Date.now();
-  await db.prepare("INSERT INTO admin (username, password, created_at, updated_at) VALUES (?, ?, ?, ?)")
-    .run('admin', hash, now, now);
+  const row = await db.prepare("SELECT id FROM admin LIMIT 1").get();
+  if (row){
+    await db.prepare("UPDATE admin SET username = ?, password = ?, updated_at = ? WHERE id = ?")
+      .run('admin', hash, now, row.id);
+  } else {
+    await db.prepare("INSERT INTO admin (username, password, created_at, updated_at) VALUES (?, ?, ?, ?)")
+      .run('admin', hash, now, now);
+  }
 }
 
 async function seedCategories(force=false){
