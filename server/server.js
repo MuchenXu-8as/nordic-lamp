@@ -27,7 +27,10 @@ async function startServer() {
     const ROOT_DIR = path.join(__dirname, '..');
     const PUBLIC_DIR = ROOT_DIR;
     const ADMIN_DIR = path.join(ROOT_DIR, 'admin');
-    const UPLOAD_DIR = path.join(ROOT_DIR, 'data', 'uploads');
+    const PERSIST_DIR = process.env.RENDER_DISK_PATH
+      ? path.join(process.env.RENDER_DISK_PATH, 'data')
+      : path.join(ROOT_DIR, 'data');
+    const UPLOAD_DIR = path.join(PERSIST_DIR, 'uploads');
     if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
     app.use('/uploads', express.static(UPLOAD_DIR));
