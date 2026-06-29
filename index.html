@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>—</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body data-page="home">
+<header id="site-header"></header>
+
+<main>
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-text">
+        <p class="eyebrow" data-text="home.eyebrow">Nordic Lighting · Since 2008</p>
+        <h1 id="hero-title" data-text="home.heroTitle">Timeless Light, Considered Design.</h1>
+        <p id="hero-sub" class="hero-sub" data-text="home.heroSub">A refined collection of handcrafted lamps designed for calm, modern interiors — where form follows feeling.</p>
+        <div class="hero-actions">
+          <a href="products.html" class="btn btn-primary" data-text="home.explore">Explore the Collection</a>
+          <a href="about.html" class="btn btn-ghost" data-text="home.ourStory">Our Story</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-placeholder">
+          <img src="https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=900&q=80" alt="Featured lamp" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow" data-text="home.featured">Featured</p>
+          <h2 data-text="home.collection">Our Collection</h2>
+        </div>
+        <a class="link-arrow" href="products.html" data-text="home.viewAll">View all</a>
+      </div>
+      <div id="featured-grid" class="product-grid"></div>
+    </div>
+  </section>
+
+  <section class="section section-muted">
+    <div class="container two-col">
+      <div class="col-text">
+        <p class="eyebrow" data-text="nav.about.eyebrow">About</p>
+        <h2 data-text="home.about.title">Made with intention.</h2>
+        <p id="home-about" data-text="home.about.intro">We believe lighting is the quietest, most generous form of design. Every piece in our collection is considered — shaped by natural materials, soft light, and the rituals of everyday life.</p>
+        <a href="about.html" class="btn btn-outline" data-text="home.about.readMore">Read more</a>
+      </div>
+      <div class="col-image">
+        <img src="https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=900&q=80" alt="About" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <div><p class="eyebrow" data-text="nav.contact.eyebrow">Contact</p><h2 data-text="home.contact.title">Work with us.</h2></div>
+      </div>
+      <div class="contact-cards">
+        <div class="card">
+          <h4 data-text="home.contact.wholesale">Wholesale</h4>
+          <p id="home-wholesale">wholesale@nordiclamp.com</p>
+        </div>
+        <div class="card">
+          <h4 data-text="home.contact.support">Support</h4>
+          <p id="home-support">support@nordiclamp.com</p>
+        </div>
+        <div class="card">
+          <h4 data-text="home.contact.showroom">Showroom</h4>
+          <p id="home-showroom">No. 12 Strandvägen, Stockholm, Sweden</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="site-footer"></footer>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    I18n.init();
+    await Site.renderHeader();
+    await Site.renderFooter();
+    await Site.applySiteSettings();
+    await HomePage.init();
+  });
+</script>
+</body>
+</html>

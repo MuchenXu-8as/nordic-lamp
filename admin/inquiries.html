@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>询盘管理 — 管理后台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/css/admin.css" />
+</head>
+<body>
+<div class="admin">
+  <main class="admin-main">
+    <div class="admin-content">
+      <div class="page-header">
+        <div><h1>询盘管理</h1><div class="desc">管理客户询盘、跟进状态</div></div>
+      </div>
+
+      <div class="toolbar">
+        <input id="search" class="search" placeholder="搜索姓名、邮箱、产品..." />
+        <select id="status-filter" class="search" style="flex:0 0 180px">
+          <option value="">全部状态</option>
+          <option value="new">新询盘</option>
+          <option value="contacted">已联系</option>
+          <option value="quoted">已报价</option>
+          <option value="won">已成交</option>
+          <option value="lost">已丢失</option>
+        </select>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="data">
+          <thead>
+            <tr>
+              <th>客户</th>
+              <th>产品</th>
+              <th>邮箱/电话</th>
+              <th>国家</th>
+              <th>数量</th>
+              <th>时间</th>
+              <th>状态</th>
+              <th style="width:180px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="inquiry-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Detail modal -->
+<div id="detail-modal" class="modal-mask">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-head">
+      <h3>询盘详情</h3>
+      <button class="close" onclick="InqAdmin.close()">✕</button>
+    </div>
+    <div class="modal-body inquiry-detail" id="detail-body"></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="InqAdmin.close()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  if (!AdminLayout.requireAuth()) {}
+  else {
+    (async () => {
+      await AdminLayout.init('inquiries');
+
+      const S = window.NLStore;
+      const STATUS_MAP = {new:'新询盘', contacted:'已联系', quoted:'已报价', won:'已成交', lost:'已丢失'};
+
+      const InqAdmin = {
+        all: [],
+
+        async init(){
+          document.getElementById('search').addEventListener('input', () => this.render());
+          document.getElementById('status-filter').addEventListener('change', () => this.render());
+          await this.render();
+        },
+
+        async render(){
+          const kw = (document.getElementById('search').value || '').trim().toLowerCase();
+          const st = document.getElementById('status-filter').value;
+          this.all = await S.Inquiries.list();
+          let list = this.all;
+          if (kw){
+            list = list.filter(i =>
+              (i.name||'').toLowerCase().includes(kw) ||
+              (i.email||'').toLowerCase().includes(kw) ||
+              (i.productName||'').toLowerCase().includes(kw)
+            );
+          }
+          if (st) list = list.filter(i => i.status === st);
+
+          const tbody = document.getElementById('inquiry-tbody');
+          if (!list.length){
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--admin-muted)">暂无询盘</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = list.map(i => `
+            <tr>
+              <td><strong>${i.name||'-'}</strong><br><span style="color:var(--admin-muted);font-size:.78rem">${i.company||''}</span></td>
+              <td>${i.productName||'-'}</td>
+              <td style="font-size:.82rem">${i.email||'-'}</td>
+              <td>${i.country||'-'}</td>
+              <td>${i.quantity||'-'}</td>
+              <td style="white-space:nowrap">${new Date(i.createdAt).toLocaleString('zh-CN')}</td>
+              <td>
+                <select class="status-select ${i.status}" onchange="InqAdmin.changeStatus('${i.id}', this.value)">
+                  <option value="new" ${i.status==='new'?'selected':''}>新询盘</option>
+                  <option value="contacted" ${i.status==='contacted'?'selected':''}>已联系</option>
+                  <option value="quoted" ${i.status==='quoted'?'selected':''}>已报价</option>
+                  <option value="won" ${i.status==='won'?'selected':''}>已成交</option>
+                  <option value="lost" ${i.status==='lost'?'selected':''}>已丢失</option>
+                </select>
+              </td>
+              <td class="actions">
+                <button class="btn btn-sm" onclick="InqAdmin.view('${i.id}')">详情</button>
+                <button class="btn btn-sm btn-danger" onclick="InqAdmin.remove('${i.id}')">删除</button>
+              </td>
+            </tr>
+          `).join('');
+        },
+
+        async changeStatus(id, status){
+          try {
+            await S.Inquiries.update(id, { status });
+            UI.toast('状态已更新','success');
+          } catch(err){
+            UI.toast('更新失败','error');
+          }
+        },
+
+        view(id){
+          const i = this.all.find(x => x.id === id);
+          if (!i) return;
+          const body = document.getElementById('detail-body');
+          body.innerHTML = `
+            <dl class="kv"><dt>姓名</dt><dd>${i.name||'-'}</dd></dl>
+            <dl class="kv"><dt>公司</dt><dd>${i.company||'-'}</dd></dl>
+            <dl class="kv"><dt>邮箱</dt><dd>${i.email||'-'}</dd></dl>
+            <dl class="kv"><dt>国家</dt><dd>${i.country||'-'}</dd></dl>
+            <dl class="kv"><dt>产品</dt><dd>${i.productName||'-'}</dd></dl>
+            <dl class="kv"><dt>数量</dt><dd>${i.quantity||'-'}</dd></dl>
+            <dl class="kv"><dt>时间</dt><dd>${new Date(i.createdAt).toLocaleString('zh-CN')}</dd></dl>
+            <dl class="kv"><dt>状态</dt><dd><span class="badge ${i.status}">${STATUS_MAP[i.status]}</span></dd></dl>
+            <dl class="kv"><dt>留言</dt><dd style="white-space:pre-line">${i.message||'-'}</dd></dl>
+          `;
+          document.getElementById('detail-modal').classList.add('show');
+        },
+
+        close(){ document.getElementById('detail-modal').classList.remove('show'); },
+
+        remove(id){
+          UI.confirm('确定删除此询盘？', async () => {
+            try {
+              await S.Inquiries.remove(id);
+              UI.toast('已删除','success');
+              await this.render();
+            } catch(err){
+              UI.toast('删除失败','error');
+            }
+          });
+        }
+      };
+      window.InqAdmin = InqAdmin;
+      InqAdmin.init();
+    })();
+  }
+</script>
+</body>
+</html>

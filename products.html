@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Products —</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body data-page="products">
+<header id="site-header"></header>
+
+<section class="page-head">
+    <div class="container">
+      <p class="eyebrow" data-text="home.collection">Collection</p>
+      <h1 data-text="products.hero.title">All Lighting</h1>
+      <p data-text="products.hero.desc" style="max-width:60ch">A carefully curated collection of lamps — each piece designed for calm, considered interiors.</p>
+    </div>
+  </section>
+
+<main class="container" style="padding-top:64px">
+  <div id="filters" class="filters"></div>
+  <div id="products-grid" class="product-grid"></div>
+</main>
+
+<footer id="site-footer"></footer>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    I18n.init();
+    await Site.renderHeader();
+    await Site.renderFooter();
+    await Site.applySiteSettings();
+    await ProductsPage.init();
+  });
+</script>
+</body>
+</html>

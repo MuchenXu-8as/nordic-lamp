@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>账号设置 — 管理后台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/css/admin.css" />
+</head>
+<body>
+<div class="admin">
+  <main class="admin-main">
+    <div class="admin-content">
+      <div class="page-header">
+        <div><h1>账号设置</h1><div class="desc">修改管理账号及密码</div></div>
+      </div>
+
+      <div class="form-card" style="max-width:560px">
+        <div class="form-group">
+          <label>当前账号</label>
+          <input id="cur-user" disabled />
+        </div>
+
+        <div class="form-group">
+          <label>新账号 (留空则不改)</label>
+          <input id="new-user" placeholder="输入新账号" />
+        </div>
+
+        <div class="form-group">
+          <label>当前密码</label>
+          <input id="cur-pwd" type="password" placeholder="请输入当前密码" />
+        </div>
+
+        <div class="form-group">
+          <label>新密码 (至少6位，留空则不改)</label>
+          <input id="new-pwd" type="password" placeholder="请输入新密码" />
+        </div>
+
+        <div class="form-group">
+          <label>确认新密码</label>
+          <input id="new-pwd2" type="password" placeholder="请再次输入新密码" />
+        </div>
+
+        <button class="btn btn-primary" onclick="Account.save()">保存更改</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  if (!AdminLayout.requireAuth()) {}
+  else {
+    (async () => {
+      await AdminLayout.init('account');
+      const S = window.NLStore;
+      const API = window.NLAPI;
+
+      let curUsername = 'admin';
+      try {
+        const me = await API.get('/api/auth/me');
+        if (me && me.user && me.user.username) curUsername = me.user.username;
+      } catch(e){}
+      document.getElementById('cur-user').value = curUsername;
+
+      const Account = {
+        async save(){
+          const curPwd = document.getElementById('cur-pwd').value;
+          const newUser = document.getElementById('new-user').value.trim();
+          const newPwd = document.getElementById('new-pwd').value;
+          const newPwd2 = document.getElementById('new-pwd2').value;
+
+          if (!curPwd){
+            UI.toast('请输入当前密码', 'error');
+            return;
+          }
+          if (newPwd && newPwd.length < 6){
+            UI.toast('新密码至少6位', 'error');
+            return;
+          }
+          if (newPwd !== newPwd2){
+            UI.toast('两次输入的新密码不一致', 'error');
+            return;
+          }
+
+          const payload = { oldPassword: curPwd };
+          if (newUser) payload.username = newUser;
+          if (newPwd) payload.newPassword = newPwd;
+
+          try {
+            const res = await API.put('/api/auth/change-password', payload);
+            document.getElementById('cur-pwd').value = '';
+            document.getElementById('new-pwd').value = '';
+            document.getElementById('new-pwd2').value = '';
+            document.getElementById('new-user').value = '';
+            UI.toast('账号已更新，请使用新账号重新登录', 'success');
+            setTimeout(() => {
+              S.Admin.logout();
+              location.href = 'login.html';
+            }, 1500);
+          } catch(err){
+            UI.toast('保存失败: ' + (err.message || ''), 'error');
+          }
+        }
+      };
+      window.Account = Account;
+    })();
+  }
+</script>
+</body>
+</html>

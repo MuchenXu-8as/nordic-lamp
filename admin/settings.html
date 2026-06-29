@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>站点设置 — 管理后台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/css/admin.css" />
+</head>
+<body>
+<div class="admin">
+  <main class="admin-main">
+    <div class="admin-content">
+      <div class="page-header">
+        <div><h1>站点设置</h1><div class="desc">编辑网站基本信息、首页内容、联系信息</div></div>
+        <button class="btn btn-primary" onclick="SiteAdmin.save()">保存更改</button>
+      </div>
+
+      <div class="form-card">
+        <div class="form-tabs">
+          <div class="form-tab active" data-tab="brand">品牌与Logo</div>
+          <div class="form-tab" data-tab="home">首页内容</div>
+          <div class="form-tab" data-tab="about">关于我们</div>
+          <div class="form-tab" data-tab="contact">联系信息</div>
+        </div>
+
+        <!-- Brand -->
+        <div class="tab-pane" data-pane="brand">
+          <div class="form-group">
+            <label>品牌名称</label>
+            <input id="s-brand" />
+          </div>
+          <div class="form-group">
+            <label>品牌标语</label>
+            <input id="s-brandTag" />
+          </div>
+          <div class="form-group">
+            <label>Logo 图片 (建议透明PNG)</label>
+            <div style="display:flex;gap:20px;align-items:center">
+              <div id="logo-preview" style="width:160px;height:60px;border:1px solid var(--admin-line);border-radius:4px;display:flex;align-items:center;justify-content:center;background:#fafbfc;overflow:hidden">
+                <span style="color:var(--admin-muted);font-size:.8rem">暂无</span>
+              </div>
+              <div>
+                <button class="btn" onclick="SiteAdmin.pickLogo()">上传Logo</button>
+                <button class="btn btn-ghost" onclick="SiteAdmin.clearLogo()">清除</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Instagram链接</label><input id="s-socialIg" />
+            </div>
+            <div class="form-group">
+              <label>Facebook链接</label><input id="s-socialFb" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Pinterest链接</label>
+            <input id="s-socialPi" />
+          </div>
+          <div class="form-group">
+            <label>页脚版权文字</label><input id="s-footerText" />
+          </div>
+        </div>
+
+        <!-- Home -->
+        <div class="tab-pane" data-pane="home" style="display:none">
+          <div class="form-group">
+            <label>首页Hero标题</label>
+            <input id="s-heroTitle" />
+          </div>
+          <div class="form-group">
+            <label>首页Hero副标题</label>
+            <textarea id="s-heroSub"></textarea>
+          </div>
+          <div class="form-group">
+            <label>首页About简介</label>
+            <textarea id="s-aboutIntro"></textarea>
+          </div>
+        </div>
+
+        <!-- About -->
+        <div class="tab-pane" data-pane="about" style="display:none">
+          <div class="form-group">
+            <label>About 页面图片</label>
+            <div style="display:flex;gap:20px;align-items:center">
+              <img id="about-preview" style="max-width:240px;max-height:180px;border:1px solid var(--admin-line);border-radius:4px" />
+              <button class="btn" onclick="SiteAdmin.pickAbout()">上传图片</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>About 简介</label>
+            <textarea id="s-aboutIntro2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>About 正文</label>
+            <textarea id="s-aboutBody" style="min-height:200px"></textarea>
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="tab-pane" data-pane="contact" style="display:none">
+          <div class="form-row">
+            <div class="form-group">
+              <label>公司地址</label><input id="s-contactAddress" />
+            </div>
+            <div class="form-group">
+              <label>电话</label><input id="s-contactPhone" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>邮箱</label>
+            <input id="s-contactEmail" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>批发邮箱</label><input id="s-wholesaleEmail" />
+            </div>
+            <div class="form-group">
+              <label>客服邮箱</label><input id="s-supportEmail" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>展厅地址</label>
+            <input id="s-showroom" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  if (!AdminLayout.requireAuth()) {}
+  else {
+    (async () => {
+      await AdminLayout.init('settings');
+      const S = window.NLStore;
+      const API = window.NLAPI;
+
+      const SiteAdmin = {
+        current: {},
+
+        init(){
+          this.load();
+          document.querySelectorAll('.form-tab').forEach(t => {
+            t.addEventListener('click', () => {
+              document.querySelectorAll('.form-tab').forEach(x => x.classList.remove('active'));
+              document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+              t.classList.add('active');
+              document.querySelector(`[data-pane="${t.dataset.tab}"]`).style.display = '';
+            });
+          });
+        },
+
+        async load(){
+          const s = await S.Site.get();
+          this.current = Object.assign({}, s);
+          document.getElementById('s-brand').value = s.brand || '';
+          document.getElementById('s-brandTag').value = s.brandTag || '';
+          document.getElementById('s-heroTitle').value = s.heroTitle || '';
+          document.getElementById('s-heroSub').value = s.heroSub || '';
+          document.getElementById('s-aboutIntro').value = s.aboutIntro || '';
+          document.getElementById('s-aboutIntro2').value = s.aboutIntro || '';
+          document.getElementById('s-aboutBody').value = s.aboutBody || '';
+          document.getElementById('s-contactAddress').value = s.contactAddress || '';
+          document.getElementById('s-contactPhone').value = s.contactPhone || '';
+          document.getElementById('s-contactEmail').value = s.contactEmail || '';
+          document.getElementById('s-wholesaleEmail').value = s.wholesaleEmail || '';
+          document.getElementById('s-supportEmail').value = s.supportEmail || '';
+          document.getElementById('s-showroom').value = s.showroom || '';
+          document.getElementById('s-socialIg').value = s.socialIg || '';
+          document.getElementById('s-socialFb').value = s.socialFb || '';
+          document.getElementById('s-socialPi').value = s.socialPi || '';
+          document.getElementById('s-footerText').value = s.footerText || '';
+
+          this.updateLogoPreview(s.logo);
+          document.getElementById('about-preview').src = s.aboutImage || '';
+        },
+
+        updateLogoPreview(src){
+          const box = document.getElementById('logo-preview');
+          if (src){
+            box.innerHTML = `<img src="${src}" style="max-width:100%;max-height:100%;object-fit:contain" />`;
+          } else {
+            box.innerHTML = `<span style="color:var(--admin-muted);font-size:.8rem">暂无</span>`;
+          }
+        },
+
+        pickLogo(){
+          const inp = document.createElement('input');
+          inp.type = 'file'; inp.accept = 'image/*';
+          inp.addEventListener('change', async () => {
+            const f = inp.files[0]; if (!f) return;
+            const formData = new FormData();
+            formData.append('file', f);
+            try {
+              const res = await API.upload('/api/upload', formData);
+              if (res && res.url){
+                this.current.logo = res.url;
+                this.updateLogoPreview(res.url);
+                return;
+              }
+            } catch(e){}
+            const r = new FileReader();
+            r.onload = () => { this.current.logo = r.result; this.updateLogoPreview(r.result); };
+            r.readAsDataURL(f);
+          });
+          inp.click();
+        },
+
+        pickAbout(){
+          const inp = document.createElement('input');
+          inp.type = 'file'; inp.accept = 'image/*';
+          inp.addEventListener('change', async () => {
+            const f = inp.files[0]; if (!f) return;
+            const formData = new FormData();
+            formData.append('file', f);
+            try {
+              const res = await API.upload('/api/upload', formData);
+              if (res && res.url){
+                this.current.aboutImage = res.url;
+                document.getElementById('about-preview').src = res.url;
+                return;
+              }
+            } catch(e){}
+            const r = new FileReader();
+            r.onload = () => {
+              this.current.aboutImage = r.result;
+              document.getElementById('about-preview').src = r.result;
+            };
+            r.readAsDataURL(f);
+          });
+          inp.click();
+        },
+
+        clearLogo(){ this.current.logo = ''; this.updateLogoPreview(''); },
+
+        async save(){
+          const data = Object.assign({}, this.current, {
+            brand: document.getElementById('s-brand').value,
+            brandTag: document.getElementById('s-brandTag').value,
+            heroTitle: document.getElementById('s-heroTitle').value,
+            heroSub: document.getElementById('s-heroSub').value,
+            aboutIntro: document.getElementById('s-aboutIntro').value,
+            aboutBody: document.getElementById('s-aboutBody').value,
+            contactAddress: document.getElementById('s-contactAddress').value,
+            contactPhone: document.getElementById('s-contactPhone').value,
+            contactEmail: document.getElementById('s-contactEmail').value,
+            wholesaleEmail: document.getElementById('s-wholesaleEmail').value,
+            supportEmail: document.getElementById('s-supportEmail').value,
+            showroom: document.getElementById('s-showroom').value,
+            socialIg: document.getElementById('s-socialIg').value,
+            socialFb: document.getElementById('s-socialFb').value,
+            socialPi: document.getElementById('s-socialPi').value,
+            footerText: document.getElementById('s-footerText').value
+          });
+          try {
+            await S.Site.save(data);
+            UI.toast('保存成功', 'success');
+          } catch(err){
+            UI.toast('保存失败: ' + (err.message || ''), 'error');
+          }
+        }
+      };
+      window.SiteAdmin = SiteAdmin;
+      SiteAdmin.init();
+    })();
+  }
+</script>
+</body>
+</html>

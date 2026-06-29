@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>仪表盘 — 管理后台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/css/admin.css" />
+</head>
+<body>
+<div class="admin">
+  <main class="admin-main">
+    <div class="admin-content">
+      <div class="page-header">
+        <div>
+          <h1>仪表盘</h1>
+          <div class="desc">欢迎回来，以下是站点概况</div>
+        </div>
+      </div>
+
+      <div id="stats" class="stats-grid"></div>
+
+      <div class="page-header">
+        <div>
+          <h1 style="font-size:1.2rem">最近询盘</h1>
+        </div>
+        <a href="inquiries.html" class="btn">查看全部 →</a>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data">
+          <thead>
+            <tr><th>姓名</th><th>产品</th><th>邮箱</th><th>时间</th><th>状态</th></tr>
+          </thead>
+          <tbody id="recent-inquiries"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  if (!AdminLayout.requireAuth()) {}
+  else {
+    (async () => {
+      await AdminLayout.init('dashboard');
+      const S = window.NLStore;
+      const stats = await S.Inquiries.stats();
+      const map = [
+        ['总询盘数', stats.total, ''],
+        ['新询盘', stats.new, 'new'],
+        ['已联系', stats.contacted, 'contacted'],
+        ['已报价', stats.quoted, 'quoted'],
+        ['已成交', stats.won, 'won'],
+        ['已丢失', stats.lost, 'lost']
+      ];
+      document.getElementById('stats').innerHTML = map.map(([l,v,c]) =>
+        `<div class="stat-card ${c}"><div class="label">${l}</div><div class="value">${v}</div></div>`
+      ).join('');
+
+      const recent = (await S.Inquiries.list()).slice(0, 5);
+      document.getElementById('recent-inquiries').innerHTML = recent.length
+        ? recent.map(i => `
+          <tr>
+            <td>${i.name || '-'}</td>
+            <td>${i.productName || '-'}</td>
+            <td>${i.email || '-'}</td>
+            <td>${new Date(i.createdAt).toLocaleString('zh-CN')}</td>
+            <td><span class="badge ${i.status}">${({new:'新询盘',contacted:'已联系',quoted:'已报价',won:'已成交',lost:'已丢失'})[i.status]||i.status}</span></td>
+          </tr>
+        `).join('')
+        : `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--admin-muted)">暂无询盘</td></tr>`;
+    })();
+  }
+</script>
+</body>
+</html>

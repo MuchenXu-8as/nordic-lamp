@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>产品管理 — 管理后台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/css/admin.css" />
+</head>
+<body>
+<div class="admin">
+  <main class="admin-main">
+    <div class="admin-content">
+      <div class="page-header">
+        <div><h1>产品管理</h1><div class="desc">管理所有产品、图片、价格、规格</div></div>
+        <button id="add-btn" class="btn btn-primary">+ 新增产品</button>
+      </div>
+
+      <div class="toolbar">
+        <input id="search" class="search" placeholder="搜索产品名称..." />
+        <select id="cat-filter" class="search" style="flex:0 0 180px">
+          <option value="">全部分类</option>
+        </select>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="data">
+          <thead>
+            <tr>
+              <th style="width:80px">图片</th>
+              <th>产品名称</th>
+              <th>分类</th>
+              <th>价格</th>
+              <th>排序</th>
+              <th>首页展示</th>
+              <th style="width:180px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="product-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="modal-mask">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-head">
+      <h3 id="edit-title">新增产品</h3>
+      <button class="close" onclick="ProductAdmin.close()">✕</button>
+    </div>
+    <div class="modal-body" id="edit-body"></div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  if (!AdminLayout.requireAuth()) {}
+  else {
+    (async () => {
+      await AdminLayout.init('products');
+      const S = window.NLStore;
+      const API = window.NLAPI;
+
+      const ProductAdmin = {
+        editingId: null,
+        allProducts: [],
+        allCats: [],
+
+        async init(){
+          const sel = document.getElementById('cat-filter');
+          this.allCats = await S.Categories.list();
+          this.allCats.forEach(c => {
+            const o = document.createElement('option'); o.value = c.id; o.textContent = c.name; sel.appendChild(o);
+          });
+          sel.addEventListener('change', () => this.render());
+          document.getElementById('search').addEventListener('input', () => this.render());
+          document.getElementById('add-btn').addEventListener('click', () => this.open(null));
+          await this.render();
+        },
+
+        async render(){
+          const kw = (document.getElementById('search').value || '').trim().toLowerCase();
+          const cat = document.getElementById('cat-filter').value;
+          this.allProducts = await S.Products.list();
+          let list = this.allProducts;
+          if (kw) list = list.filter(p => (p.name||'').toLowerCase().includes(kw));
+          if (cat) list = list.filter(p => p.categoryId === cat);
+
+          const tbody = document.getElementById('product-tbody');
+          if (!list.length){
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--admin-muted)">暂无产品</td></tr>`;
+            return;
+          }
+          const catMap = {};
+          this.allCats.forEach(c => { catMap[c.id] = c; });
+          tbody.innerHTML = list.map(p => {
+            const c = catMap[p.categoryId];
+            const img = p.images && p.images[0] ? p.images[0] : '';
+            return `
+              <tr>
+                <td>${img ? `<div class="thumb"><img src="${img}" /></div>` : '<div class="thumb"></div>'}</td>
+                <td>${p.name}</td>
+                <td>${c ? c.name : ''}</td>
+                <td>${p.price || ''}</td>
+                <td>${p.sort_order !== undefined ? p.sort_order : p.order}</td>
+                <td>${p.featured ? '✓ 是' : ''}</td>
+                <td class="actions">
+                  <button class="btn btn-sm" onclick="ProductAdmin.open('${p.id}')">编辑</button>
+                  <button class="btn btn-sm btn-danger" onclick="ProductAdmin.remove('${p.id}')">删除</button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        },
+
+        async open(id){
+          this.editingId = id;
+          let p;
+          if (id){
+            p = await S.Products.get(id);
+            if (!p) return;
+          } else {
+            p = { name:'', categoryId:'', price:'', description:'', specs:{}, images:[], featured:false, sort_order:0 };
+          }
+          document.getElementById('edit-title').textContent = id ? '编辑产品' : '新增产品';
+          const cats = this.allCats;
+          const opts = cats.length
+            ? cats.map(c => `<option value="${c.id}" ${c.id===p.categoryId?'selected':''}>${c.name}</option>`).join('')
+            : '<option value="">请先创建分类</option>';
+
+          const body = document.getElementById('edit-body');
+          body.innerHTML = `
+            <div class="form-group">
+              <label>产品名称 <span class="req">*</span></label>
+              <input id="f-name" value="${p.name||''}" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>分类 <span class="req">*</span></label>
+                <select id="f-cat">${opts}</select>
+              </div>
+              <div class="form-group">
+                <label>价格</label>
+                <input id="f-price" value="${p.price||''}" placeholder="如 EUR 249" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>产品描述</label>
+              <textarea id="f-desc">${p.description||''}</textarea>
+            </div>
+            <div class="form-group">
+              <label>规格参数 (每行一项，格式: 名称=值)</label>
+              <textarea id="f-specs" placeholder="例如：&#10;Material=Solid oak&#10;Height=42 cm">${Object.entries(p.specs||{}).map(([k,v])=>`${k}=${v}`).join('\n')}</textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>排序</label>
+                <input id="f-order" type="number" value="${p.sort_order !== undefined ? p.sort_order : (p.order || 0)}" />
+              </div>
+              <div class="form-group">
+                <label>&nbsp;</label>
+                <label style="display:flex;align-items:center;gap:8px;font-weight:500">
+                  <input id="f-featured" type="checkbox" ${p.featured?'checked':''} style="width:auto" />
+                  首页Featured展示
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>产品图片 (支持多张上传，拖动可调整顺序，第一张为主图)</label>
+              <div id="f-images" class="image-uploader"></div>
+              <div class="form-help">点击"+"添加图片，拖动图片可排序，点击右上角"×"删除</div>
+            </div>
+          `;
+
+          this._editImages = (p.images || []).slice();
+          this.renderImages(this._editImages);
+
+          document.getElementById('edit-modal').classList.add('show');
+        },
+
+        renderImages(imgs){
+          const box = document.getElementById('f-images');
+          box.innerHTML = '';
+          imgs.forEach((src, i) => {
+            const div = document.createElement('div');
+            div.className = 'img-item';
+            div.draggable = true;
+            div.dataset.idx = i;
+            div.innerHTML = `
+              <img src="${src}" alt="" />
+              <button class="del">×</button>
+              <span class="order">${i+1}</span>
+            `;
+            div.querySelector('.del').addEventListener('click', (e) => {
+              e.stopPropagation();
+              imgs.splice(i,1);
+              this.renderImages(imgs);
+            });
+            box.appendChild(div);
+          });
+
+          const add = document.createElement('div');
+          add.className = 'uploader-add';
+          add.innerHTML = '<div class="plus">+</div><div>上传图片</div>';
+          add.addEventListener('click', () => this.pickFiles(imgs));
+          box.appendChild(add);
+
+          this.setupDragSort(box, imgs);
+        },
+
+        pickFiles(imgs){
+          const inp = document.createElement('input');
+          inp.type = 'file';
+          inp.multiple = true;
+          inp.accept = 'image/*';
+          inp.addEventListener('change', async () => {
+            const files = Array.from(inp.files);
+            for (const f of files){
+              const formData = new FormData();
+              formData.append('file', f);
+              try {
+                const res = await API.upload('/api/upload', formData);
+                if (res && res.url){
+                  imgs.push(res.url);
+                }
+              } catch(err){
+                // fallback: use data URL
+                const dataUrl = await new Promise(resolve => {
+                  const r = new FileReader();
+                  r.onload = () => resolve(r.result);
+                  r.readAsDataURL(f);
+                });
+                imgs.push(dataUrl);
+              }
+            }
+            this.renderImages(imgs);
+          });
+          inp.click();
+        },
+
+        setupDragSort(box, imgs){
+          let dragSrc = null;
+          box.querySelectorAll('.img-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+              dragSrc = +item.dataset.idx;
+              item.classList.add('dragging');
+              e.dataTransfer.effectAllowed = 'move';
+            });
+            item.addEventListener('dragend', () => item.classList.remove('dragging'));
+            item.addEventListener('dragover', (e) => { e.preventDefault(); item.style.border = '2px dashed var(--admin-accent)'; });
+            item.addEventListener('dragleave', () => item.style.border = '');
+            item.addEventListener('drop', (e) => {
+              e.preventDefault();
+              item.style.border = '';
+              const target = +item.dataset.idx;
+              if (dragSrc === null || dragSrc === target) return;
+              const [moved] = imgs.splice(dragSrc, 1);
+              imgs.splice(target, 0, moved);
+              this.renderImages(imgs);
+            });
+          });
+        },
+
+        async save(){
+          const imgs = this._editImages.slice();
+          const specsStr = document.getElementById('f-specs').value;
+          const specs = {};
+          specsStr.split('\n').forEach(line => {
+            const [k,...rest] = line.split('=');
+            if (k){ specs[k.trim()] = rest.join('=').trim(); }
+          });
+          const data = {
+            name: document.getElementById('f-name').value.trim(),
+            categoryId: document.getElementById('f-cat').value,
+            price: document.getElementById('f-price').value.trim(),
+            description: document.getElementById('f-desc').value,
+            specs,
+            images: imgs,
+            featured: document.getElementById('f-featured').checked,
+            sort_order: parseInt(document.getElementById('f-order').value || '0', 10)
+          };
+          if (!data.name){ UI.toast('请输入产品名称', 'error'); return; }
+          if (!data.categoryId){ UI.toast('请选择分类', 'error'); return; }
+
+          try {
+            if (this.editingId){
+              await S.Products.update(this.editingId, data);
+              UI.toast('产品已更新', 'success');
+            } else {
+              data.slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+              await S.Products.create(data);
+              UI.toast('产品已创建', 'success');
+            }
+            this.close();
+            await this.render();
+          } catch(err){
+            UI.toast('保存失败: ' + (err.message || ''), 'error');
+          }
+        },
+
+        close(){ document.getElementById('edit-modal').classList.remove('show'); },
+
+        remove(id){
+          UI.confirm('确定要删除此产品吗？', async () => {
+            try {
+              await S.Products.remove(id);
+              UI.toast('已删除', 'success');
+              await this.render();
+            } catch(err){
+              UI.toast('删除失败', 'error');
+            }
+          });
+        }
+      };
+
+      window.ProductAdmin = ProductAdmin;
+
+      document.querySelector('#edit-modal .modal-foot')?.remove();
+      const foot = document.createElement('div');
+      foot.className = 'modal-foot';
+      foot.innerHTML = `
+        <button class="btn" onclick="ProductAdmin.close()">取消</button>
+        <button class="btn btn-primary" onclick="ProductAdmin.save()">保存</button>
+      `;
+      document.querySelector('#edit-modal .modal').appendChild(foot);
+
+      await ProductAdmin.init();
+    })();
+  }
+</script>
+</body>
+</html>

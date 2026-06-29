@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>管理后台登录</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/css/admin.css" />
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="logo">Nordic Lamp</div>
+    <div class="subtitle">管理后台</div>
+    <form id="login-form" autocomplete="off">
+      <div class="form-group">
+        <label>账号</label>
+        <input id="u" type="text" required placeholder="请输入账号" />
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input id="p" type="password" required placeholder="请输入密码" />
+      </div>
+      <button type="submit">登 录</button>
+      <div class="err" id="err"></div>
+    </form>
+    <a class="back" href="../index.html">← 返回前台</a>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/store.js"></script>
+<script>
+  const S = window.NLStore;
+  const form = document.getElementById('login-form');
+  const err = document.getElementById('err');
+  if (S.Admin.isLoggedIn()) location.href = 'index.html';
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const u = document.getElementById('u').value.trim();
+    const p = document.getElementById('p').value;
+    err.textContent = '登录中...';
+    try {
+      const ok = await S.Admin.login(u, p);
+      if (ok){
+        S.Admin.setSession();
+        location.href = 'index.html';
+      } else {
+        err.textContent = '账号或密码错误';
+      }
+    } catch(ex){
+      err.textContent = '登录失败：' + (ex.message || '请检查网络');
+    }
+  });
+</script>
+</body>
+</html>

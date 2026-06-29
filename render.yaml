@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: nordic-lamp-api
+    env: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_TYPE
+        value: postgres
+      - key: DB_HOST
+        fromDatabase:
+          name: nordic-lamp-db
+          property: host
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        fromDatabase:
+          name: nordic-lamp-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: nordic-lamp-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: nordic-lamp-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+
+  - type: database
+    name: nordic-lamp-db
+    plan: free
+    databaseName: nordic_lamp
+    user: nordic_user

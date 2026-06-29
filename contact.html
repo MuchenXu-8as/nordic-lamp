@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contact —</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body data-page="contact">
+<header id="site-header"></header>
+
+<section class="about-hero" style="padding-bottom:48px">
+  <div class="container">
+    <p class="eyebrow">Contact</p>
+    <h1 data-text="contact.title">Get in touch.</h1>
+  </div>
+</section>
+
+<section class="container" style="padding-bottom:96px">
+  <div class="contact-grid">
+    <div class="contact-info">
+      <h3 data-text="contact.info">Contact Information</h3>
+      <p><strong id="c-address" style="color:var(--ink)"></strong></p>
+      <p><span style="color:var(--muted)">Email:&nbsp;</span><a id="c-email" href="#"></a></p>
+      <p><span style="color:var(--muted)">Phone:&nbsp;</span><span id="c-phone"></span></p>
+      <h3 style="margin-top:48px" data-text="contact.wholesale.title">Wholesale</h3>
+      <p data-text="contact.wholesale.desc">We supply to boutiques, designers and architects worldwide. Minimum order from 10 units.</p>
+      <a href="mailto:wholesale@nordiclamp.com" class="btn btn-outline" data-text="contact.wholesale.cta">Contact Wholesale</a>
+    </div>
+    <div>
+      <form id="contact-form" class="inquiry-form" style="padding:0;background:transparent;border:none">
+        <div class="form-row">
+          <div class="form-group"><label data-text="contact.form.name">Your Name</label><input required name="name" /></div>
+          <div class="form-group"><label data-text="contact.form.email">Email</label><input required type="email" name="email" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label data-text="contact.form.company">Company</label><input name="company" /></div>
+          <div class="form-group"><label data-text="contact.form.country">Country</label><input name="country" /></div>
+        </div>
+        <div class="form-group"><label data-text="contact.form.message">Message</label><textarea required name="message" data-placeholder="contact.form.message.placeholder" placeholder="How can we help?"></textarea></div>
+        <button type="submit" class="btn btn-primary btn-block" data-text="contact.form.submit">Send Message</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer id="site-footer"></footer>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    I18n.init();
+    await Site.renderHeader();
+    await Site.renderFooter();
+    await Site.applySiteSettings();
+    await ContactPage.init();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Product —</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body data-page="products">
+<header id="site-header"></header>
+
+<section class="product-detail">
+  <div class="container product-detail-inner">
+    <div>
+      <div id="gallery-main" class="gallery-main"></div>
+      <div id="gallery-thumbs" class="gallery-thumbs"></div>
+    </div>
+    <div id="product-meta" class="product-meta"></div>
+  </div>
+</section>
+
+<section class="container" style="padding: 0 32px 96px;max-width:900px;margin:0 auto">
+  <form id="inquiry-form" class="inquiry-form">
+    <h3 data-text="product.inquiry.title">Send an inquiry</h3>
+    <p class="inquiry-desc" data-text="product.inquiry.desc">We welcome wholesale and custom orders. We'll reply within 1–2 business days.</p>
+    <div class="form-row">
+      <div class="form-group"><label data-text="product.inquiry.name">Your Name</label><input required name="name" /></div>
+      <div class="form-group"><label data-text="product.inquiry.email">Email</label><input required type="email" name="email" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label data-text="product.inquiry.company">Company</label><input name="company" /></div>
+      <div class="form-group"><label data-text="product.inquiry.country">Country</label><input name="country" /></div>
+    </div>
+    <div class="form-group"><label data-text="product.inquiry.quantity">Quantity</label><input name="quantity" data-placeholder="product.inquiry.quantity.placeholder" placeholder="e.g. 10 pcs" /></div>
+    <div class="form-group"><label data-text="product.inquiry.message">Message</label><textarea name="message" data-placeholder="product.inquiry.message.placeholder" placeholder="Tell us about your project..."></textarea></div>
+    <button type="submit" class="btn btn-primary btn-block" data-text="product.inquiry.submit">Submit Inquiry</button>
+  </form>
+</section>
+
+<footer id="site-footer"></footer>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    I18n.init();
+    await Site.renderHeader();
+    await Site.renderFooter();
+    await Site.applySiteSettings();
+    await ProductDetailPage.init();
+  });
+</script>
+</body>
+</html>
