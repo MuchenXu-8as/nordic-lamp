@@ -378,27 +378,53 @@ function rowToProduct(row){
   };
 }
 
+let appInitialized = false;
+let initError = null;
+
 async function initializeApp() {
-  await db.initDatabase();
-  await initSchema();
-  await seed();
+  if (appInitialized) return;
+  if (initError) throw initError;
+  try {
+    await db.initDatabase();
+    await initSchema();
+    await seed();
+    appInitialized = true;
+    console.log('[init] App initialized successfully');
+  } catch (err) {
+    initError = err;
+    console.error('Failed to initialize app:', err);
+    throw err;
+  }
 }
 
-initializeApp().catch(err => {
-  console.error('Failed to initialize app:', err);
-});
+async function ensureInitialized(req, res, next) {
+  try {
+    await initializeApp();
+    next();
+  } catch (err) {
+    console.error('Initialization error:', err);
+    res.status(500).json({ error: 'Service initialization failed' });
+  }
+}
+
+app.use(ensureInitialized);
 
 if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
   module.exports = app;
 } else {
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log('===============================================');
-    console.log('  Nordic Lamp backend running on port', PORT);
-    console.log('  Database:', db.isPgMode() ? 'PostgreSQL (Supabase)' : 'SQLite');
-    console.log('  Storage:', useSupabaseStorage ? 'Supabase Storage' : 'Local Disk');
-    console.log('  Frontend:  http://localhost:' + PORT + '/');
-    console.log('  API root:  http://localhost:' + PORT + '/api');
-    console.log('===============================================');
+  initializeApp().then(() => {
+    app.listen(PORT, () => {
+      console.log('===============================================');
+      console.log('  Nordic Lamp backend running on port', PORT);
+      console.log('  Database:', db.isPgMode() ? 'PostgreSQL (Supabase)' : 'In-Memory');
+      console.log('  Storage:', useSupabaseStorage ? 'Supabase Storage' : 'Local Disk');
+      console.log('  Frontend:  http://localhost:' + PORT + '/');
+      console.log('  API root:  http://localhost:' + PORT + '/api');
+      console.log('===============================================');
+    });
+  }).catch(err => {
+    console.error('Failed to start app:', err);
+    process.exit(1);
   });
 }
