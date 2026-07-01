@@ -4,7 +4,7 @@ const path = require('path');
 let db = null;
 let pgMode = false;
 
-function initDatabase() {
+async function initDatabase() {
   const usePostgres = process.env.DATABASE_URL || process.env.SUPABASE_URL;
 
   if (usePostgres) {
@@ -20,41 +20,57 @@ function initDatabase() {
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000
     });
+    return db;
   } else {
-    const SQLiteDatabase = require('better-sqlite3');
+    const initSqlJs = require('sql.js');
     const DATA_DIR = process.env.RENDER_DISK_PATH
       ? path.join(process.env.RENDER_DISK_PATH, 'data')
       : path.join(__dirname, '..', 'data');
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
     const dbPath = path.join(DATA_DIR, 'nordic-lamp.db');
-    db = new SQLiteDatabase(dbPath);
-    db.pragma('journal_mode = WAL');
-    db.pragma('foreign_keys = ON');
-    console.log('[db] Using SQLite:', dbPath);
-  }
+    let dbBuffer = Buffer.alloc(0);
+    if (fs.existsSync(dbPath)) {
+      dbBuffer = fs.readFileSync(dbPath);
+    }
 
-  return db;
+    const SQL = await initSqlJs({ locateFile: file => `node_modules/sql.js/dist/${file}` });
+    db = new SQL.Database(dbBuffer);
+
+    console.log('[db] Using sql.js:', dbPath);
+    return db;
+  }
 }
 
-function getDb() {
+function saveSqliteDb() {
+  if (!pgMode && db && typeof db.export === 'function') {
+    const DATA_DIR = process.env.RENDER_DISK_PATH
+      ? path.join(process.env.RENDER_DISK_PATH, 'data')
+      : path.join(__dirname, '..', 'data');
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    const dbPath = path.join(DATA_DIR, 'nordic-lamp.db');
+    const data = db.export();
+    fs.writeFileSync(dbPath, Buffer.from(data));
+  }
+}
+
+async function getDb() {
   if (!db) {
-    return initDatabase();
+    return await initDatabase();
   }
   return db;
 }
 
 async function query(text, params) {
-  const d = getDb();
+  const d = await getDb();
   if (pgMode) {
     const result = await d.query(text, params);
     return result.rows;
   } else {
     const stmt = d.prepare(text);
-    if (params) {
-      return stmt.all(...params);
-    }
-    return stmt.all();
+    const rows = stmt.all(params || []);
+    stmt.free();
+    return rows;
   }
 }
 
@@ -64,21 +80,21 @@ async function queryOne(text, params) {
 }
 
 async function run(text, params) {
-  const d = getDb();
+  const d = await getDb();
   if (pgMode) {
     const result = await d.query(text, params);
     return { changes: result.rowCount };
   } else {
     const stmt = d.prepare(text);
-    if (params) {
-      return stmt.run(...params);
-    }
-    return stmt.run();
+    const result = stmt.run(params || []);
+    stmt.free();
+    saveSqliteDb();
+    return { changes: result.changes || 1 };
   }
 }
 
 async function exec(text) {
-  const d = getDb();
+  const d = await getDb();
   if (pgMode) {
     const statements = text.split(';').filter(s => s.trim());
     for (const stmt of statements) {
@@ -87,13 +103,14 @@ async function exec(text) {
       }
     }
   } else {
-    d.exec(text);
+    d.run(text);
+    saveSqliteDb();
   }
 }
 
 function transaction(fn) {
   return async function(...args) {
-    const d = getDb();
+    const d = await getDb();
     if (pgMode) {
       const client = await d.connect();
       try {
@@ -108,7 +125,16 @@ function transaction(fn) {
         client.release();
       }
     } else {
-      return d.transaction(fn)(...args);
+      try {
+        d.run('BEGIN');
+        const result = await fn(d, ...args);
+        d.run('COMMIT');
+        saveSqliteDb();
+        return result;
+      } catch (e) {
+        d.run('ROLLBACK');
+        throw e;
+      }
     }
   };
 }
