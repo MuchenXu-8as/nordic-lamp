@@ -5,17 +5,16 @@ let db = null;
 let pgMode = false;
 
 function initDatabase() {
-  const usePostgres = process.env.DATABASE_URL || process.env.SUPABASE_URL;
+  const usePostgres = process.env.DATABASE_URL;
 
   if (usePostgres) {
     pgMode = true;
     console.log('[db] Using PostgreSQL (Supabase)');
     const { Pool } = require('pg');
-    const connectionString = process.env.DATABASE_URL || process.env.SUPABASE_URL;
     
     db = new Pool({
-      connectionString,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      connectionString: usePostgres,
+      ssl: { rejectUnauthorized: false },
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000
